@@ -237,7 +237,7 @@ def main():
         print "	$(AR) $(LIBNAME) $(filter-out main.o, $(OBJ))"
     if soname != "":
         print "$(SONAME): $(OBJ)"
-        print "	$(CC) -o $(SONAME) -shared $(filter-out main.o, $(OBJ))"
+        print "	$(CC) -o $(SONAME) $(LDFLAGS) -shared $(filter-out main.o, $(OBJ))"
     print
 
 # Print library rules
