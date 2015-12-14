@@ -5,6 +5,7 @@ import sys
 import pwd
 import time
 import re
+import argparse
 
 # TODO: use argparse
 
@@ -30,79 +31,52 @@ def dependanciesOf(file, incdirs):
     deptab = []
     return recurDependanciesOf(file, incdirs, deptab)
 
+def get_arguments():
+    parser = argparse.ArgumentParser(description='Autogenerate a Makefile')
+    parser.add_argument("-I", "--include", type=str, action="append", help="Add include directory", default=[])
+    parser.add_argument("-S", "--source", type=str, action="append", help="Add source directory", default=[])
+    parser.add_argument("-N", "--name", type=str, action="store", help="Set executable name", default="")
+    parser.add_argument("-A", "--aname", type=str, action="store", help="Set static library name", default="")
+    parser.add_argument("-D", "--dname", type=str, action="store", help="Set dynamic library name", default="")
+    parser.add_argument("-C", "--c++flags", type=str, action="append", help="Add C++ flags", default=[])
+    parser.add_argument("-c", "--cflags", type=str, action="append", help="Add C flags", default=[])
+    parser.add_argument("-f", "--flags", type=str, action="append", help="Add C and C++ flags", default=[])
+    parser.add_argument("-L", "--ldflags", type=str, action="append", help="Add ld flags", default=[])
+    parser.add_argument("-d", "--dependency", type=str, action="append", help="Add library as dependency, with directory to call make in", default=[])
+    parser.add_argument("-e", "--exclude", type=str, action="append", help="Exclude files matching regex", default=[])
+    parser.add_argument('--version', action='version', version='%(prog)s 0.1 (alpha)')
+    result = parser.parse_args()
+    args = dict(result._get_kwargs())
+    return args
+
+
 # +---------------+
 # | main function |
 # +---------------+
 def main():
-    srcdirs = []
-    incdirs = []
-    exename = ""
-    libname = ""
-    soname = ""
-    cflags = ""
-    cxxflags = ""
-    ldflags = ""
-    libs=[]
-    ldlibrarypath=[]
+    argdict = get_arguments()
+
+    srcdirs = argdict['source']
+    incdirs = argdict['include']
+    exename = argdict['name']
+    libname = argdict['aname']
+    soname = argdict['dname']
+    cflags = " ".join(argdict['flags']) + " " + " ".join(argdict['cflags'])
+    cxxflags = " ".join(argdict['flags']) + " " + " ".join(argdict['c++flags'])
+    ldflags = " ".join(argdict['ldflags'])
+    excludes = argdict['exclude']
     cfiles = []
     cppfiles = []
-    excludes = []
 
-    if len(sys.argv) == 2 and sys.argv[1] == '--help':
-        print "Options :"
-        print "	-I<dir>		add include directory"
-        print "	-S<dir>		add source directory"
-        print "	-N<name>	set executable name"
-        print "	-A<name>	set library name"
-        print "	-D<name>	set dynamic library name"
-        print "	-C<flags>	add c++ flags"
-        print "	-c<flags>	add c flags"
-        print "	-f<flags>	add c and c++ flags"
-        print "	-L<flags>	add ld flags"
-        print "	-l<lib,makedir>	add library as a dependance, with directory to call make in, and the directory"
-        print "	-e<regex>	exclude files matching regex"
-        return
+    libs = []
+    ldlibrarypath = []
+    for pairstr in argdict['dependency']:
+        pair = pairstr.split(',')
+        if len(pair) != 2:
+            print "Fatal: Invalid library pair: " + pairstr
+            return
+        libs.append(pair)
 
-# Parse include and source directories
-    for arg in sys.argv:
-        if arg.startswith('-I'):
-            dirname = arg[2:]
-            if os.path.isdir(dirname):
-                incdirs.append(dirname)
-            else:
-                print "Fatal: " + dirname + " is not a valid directory"
-                return
-        elif arg.startswith('-S'):
-            dirname = arg[2:]
-            if os.path.isdir(dirname):
-                srcdirs.append(dirname)
-            else:
-                print "Fatal: " + dirname + " is not a valid directory"
-                return
-        elif arg.startswith('-N'):
-            exename = arg[2:]
-        elif arg.startswith('-A'):
-            libname = arg[2:]
-        elif arg.startswith('-D'):
-            soname = arg[2:]
-        elif arg.startswith('-C'):
-            cxxflags += arg[2:] + " "
-        elif arg.startswith('-c'):
-            cflags += arg[2:] + " "
-        elif arg.startswith('-f'):
-            cflags += arg[2:] + " "
-            cxxflags += arg[2:] + " "
-        elif arg.startswith('-L'):
-            ldflags += arg[2:] + " "
-        elif arg.startswith('-l'):
-            pairstr = arg[2:]
-            pair = pairstr.split(',')
-            if len(pair) != 2:
-                print "Fatal: Invalid library pair: " + pairstr
-                return
-            libs.append(pair)
-        elif arg.startswith('-e'):
-            excludes.append(arg[2:])
     if len(srcdirs) == 0:
         print "Fatal: No input directory"
         return
@@ -237,7 +211,7 @@ def main():
         print "	$(AR) $(LIBNAME) $(filter-out main.o, $(OBJ))"
     if soname != "":
         print "$(SONAME): $(OBJ)"
-        print "	$(CC) -o $(SONAME) $(LDFLAGS) -shared $(filter-out main.o, $(OBJ))"
+        print "	$(CC) -o $(SONAME) $(filter-out main.o, $(OBJ)) $(LDFLAGS) -shared"
     print
 
 # Print library rules
