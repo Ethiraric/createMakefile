@@ -61,9 +61,9 @@ def main():
     exename = argdict['name']
     libname = argdict['aname']
     soname = argdict['dname']
-    cflags = " ".join(argdict['flags']) + " " + " ".join(argdict['cflags'])
-    cxxflags = " ".join(argdict['flags']) + " " + " ".join(argdict['c++flags'])
-    ldflags = " ".join(argdict['ldflags'])
+    cflags = " ".join(argdict['flags']) + " " + " ".join(argdict['cflags']) + " "
+    cxxflags = " ".join(argdict['flags']) + " " + " ".join(argdict['c++flags']) + " "
+    ldflags = " ".join(argdict['ldflags']) + " "
     excludes = argdict['exclude']
     cfiles = []
     cppfiles = []
