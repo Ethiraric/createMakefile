@@ -169,7 +169,7 @@ def main():
             print "CSRC		=	" + cfiles[i]
         else:
             print "CSRC		+=	" + cfiles[i]
-    if len(cfiles) > 0:
+    if len(cppfiles) > 0:
         print
     for i in range (len(cppfiles)):
         if i == 0:
@@ -206,19 +206,16 @@ def main():
         namedeps += "$(OBJ)"
         print "$(NAME): " + namedeps
         print "	$(CXX) -o $(NAME) $(OBJ) $(LDFLAGS)"
+        print
     if libname != "":
         print "$(LIBNAME): $(OBJ)"
         print "	$(AR) $(LIBNAME) $(filter-out main.o, $(OBJ))"
+        print
     if soname != "":
         print "$(SONAME): $(OBJ)"
         print "	$(CC) -o $(SONAME) $(filter-out main.o, $(OBJ)) $(LDFLAGS) -shared"
-    print
-
-# Print library rules
-    for libpair in libs:
-        print libpair[0] + ":"
-        print "	@$(MAKE) -C " + libpair[1]
         print
+
 
 # Print all rule if there is one main rule
     if nbset == 1:
@@ -228,6 +225,12 @@ def main():
             print "all: $(LIBNAME)"
         if soname != "":
             print "all: $(SONAME)"
+        print
+
+# Print library rules
+    for libpair in libs:
+        print libpair[0] + ":"
+        print "	@$(MAKE) -C " + libpair[1]
         print
 
 # Print clean rule
