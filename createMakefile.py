@@ -120,6 +120,9 @@ def main():
         print "Fatal: No input files"
         return
 
+    cfiles.sort()
+    cppfiles.sort()
+
 # Print Makefile to stdout
     print "##"
     print "## Makefile for  in " + os.getcwd()
