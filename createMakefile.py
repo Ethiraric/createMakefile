@@ -108,7 +108,7 @@ def main():
             filename = os.path.join(dir, file)
             ok = 1
             for pattern in excludes:
-                if re.match(pattern, file):
+                if re.match(pattern, filename):
                     ok = 0
                     break
             if ok == 1:
